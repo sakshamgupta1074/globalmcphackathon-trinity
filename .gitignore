@@ -1,3 +1,9 @@
+# Model client config
+model_client.env
+
+# VSCode settings
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
