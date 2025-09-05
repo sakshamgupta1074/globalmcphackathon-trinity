@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Login</title>
+    <script src="https://descopecdn.com/npm/@descope/web-component@3.21.0/dist/index.js"></script>
+    <script src="https://descopecdn.com/npm/@descope/web-js-sdk@1.16.0/dist/index.umd.js"></script>
+    <style>
+      body {
+        display: flex;
+        height: 100vh;
+        justify-content: center;
+        align-items: center;
+        background: #f0f2f5;
+        font-family: Arial, sans-serif;
+      }
+      .login-container {
+        text-align: center;
+        padding: 40px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <h2>🔑 Secure Login</h2>
+      <descope-wc
+        project-id="{{ project_id }}"
+        flow-id="sign-up-or-in"
+        theme="light"
+        id="descope-login"
+      ></descope-wc>
+    </div>
+
+    <script>
+      window.DescopeConfig = {
+        projectId: "{{ project_id }}",
+        redirectUrl: "/chat"
+      };
+      const widget = document.getElementById("descope-login");
+      widget.addEventListener("success", async (e) => {
+      const resp = await fetch("/callback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionJwt: e.detail.sessionJwt })
+      });
+      const data = await resp.json();
+      if (data.success) window.location.href = "/chat";
+      else alert("Login failed");
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: linear-gradient(135deg, #e3f0ff 0%, #f9fafc 100%);
+        min-height: 100vh;
+      }
+      body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .header {
+        background: #1565c0;
+        color: #fff;
+        padding: 18px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1.2rem;
+        box-shadow: 0 2px 8px rgba(21,101,192,0.08);
+        letter-spacing: 0.5px;
+      }
+      .header a {
+        color: #fff;
+        text-decoration: underline;
+        font-weight: 500;
+      }
+      .chat-box {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        max-width: 900px;
+        width: 100%;
+        margin: 0 auto;
+        background: rgba(255,255,255,0.98);
+        border-radius: 18px;
+        box-shadow: 0 8px 32px rgba(21,101,192,0.10);
+        padding: 32px 24px 0 24px; /* top, right, bottom, left */
+        margin-top: 32px;
+        margin-bottom: 0;
+        min-height: 0; /* Remove min-height to avoid extra space */
+        height: calc(100vh - 80px); /* Fill most of the viewport minus header */
+      }
+      .messages {
+        flex: 1 1 auto;
+        max-height: none;
+        min-height: 0;
+        overflow-y: auto;
+        margin-bottom: 8px;
+        padding-right: 8px;
+        scrollbar-width: thin;
+        scrollbar-color: #1565c0 #e3f0ff;
+      }
+      .messages::-webkit-scrollbar {
+        width: 8px;
+        background: #e3f0ff;
+      }
+      .messages::-webkit-scrollbar-thumb {
+        background: #1565c0;
+        border-radius: 8px;
+      }
+      .user, .bot {
+        margin: 14px 0;
+        padding: 14px 20px;
+        border-radius: 18px;
+        max-width: 75%;
+        font-size: 1.08rem;
+        line-height: 1.6;
+        word-break: break-word;
+        box-shadow: 0 2px 8px rgba(21,101,192,0.06);
+        position: relative;
+        transition: background 0.2s;
+      }
+      .user {
+        background: linear-gradient(135deg, #1565c0 80%, #42a5f5 100%);
+        color: #fff;
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+      }
+      .bot {
+        background: #f1f6fa;
+        color: #222;
+        margin-right: auto;
+        border-bottom-left-radius: 4px;
+      }
+      .user::after {
+        content: "";
+        position: absolute;
+        right: -10px;
+        top: 18px;
+        border-width: 8px 0 8px 10px;
+        border-style: solid;
+        border-color: transparent transparent transparent #1565c0;
+      }
+      .bot::after {
+        content: "";
+        position: absolute;
+        left: -10px;
+        top: 18px;
+        border-width: 8px 10px 8px 0;
+        border-style: solid;
+        border-color: transparent #f1f6fa transparent transparent;
+      }
+      .input-area {
+        display: flex;
+        padding-bottom: 25px;
+        gap: 12px;
+        align-items: center;
+        padding-top: 8px;
+        border-top: 1px solid #e3f0ff;
+        background: transparent;
+        margin-bottom: 0;
+      }
+      input[type="text"] {
+        flex: 1;
+        margin-right: 15px;
+        padding: 16px;
+        border: 1.5px solid #b3c6e0;
+        border-radius: 12px;
+        font-size: 1.08rem;
+        outline: none;
+        background: #f9fafc;
+        transition: border 0.2s;
+      }
+      input[type="text"]:focus {
+        border: 1.5px solid #1565c0;
+        background: #fff;
+      }
+      button {
+        padding: 14px 28px;
+        background: linear-gradient(135deg, #1565c0 80%, #42a5f5 100%);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.08rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(21,101,192,0.08);
+        transition: background 0.2s, box-shadow 0.2s;
+      }
+      button:hover {
+        background: linear-gradient(135deg, #0d47a1 80%, #1976d2 100%);
+        box-shadow: 0 4px 16px rgba(21,101,192,0.16);
+      }
+      .loader {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border: 3px solid #1565c0;
+        border-radius: 50%;
+        border-top: 3px solid #f3f3f3;
+        animation: spin 1s linear infinite;
+        vertical-align: middle;
+        margin-right: 8px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg);}
+        100% { transform: rotate(360deg);}
+      }
+      @media (max-width: 600px) {
+        .chat-box {
+          padding: 10px 2vw 0 2vw;
+          margin-top: 8px;
+          margin-bottom: 0;
+          min-height: 0;
+          height: calc(100vh - 60px);
+        }
+        .header {
+          padding: 12px 8px;
+          font-size: 1rem;
+        }
+        .user, .bot {
+          font-size: 0.98rem;
+          padding: 10px 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div>🤖 Secure Multi-Agent Chat</div>
+      <div>
+        Logged in as <b>{{ user_name }}</b> |
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
+
+    <div class="chat-box">
+      <div class="messages" id="messages"></div>
+      <div class="input-area">
+        <input type="text" id="msgInput" placeholder="Type your message..." autocomplete="off"/>
+        <button onclick="sendMsg()">Send</button>
+      </div>
+    </div>
+
+    <script>
+      // Send message and update UI
+      async function sendMsg() {
+        const msgInput = document.getElementById("msgInput");
+        const msg = msgInput.value;
+        if (!msg) return;
+
+        // Optimistically add user message and loader
+        const messagesDiv = document.getElementById("messages");
+        messagesDiv.innerHTML += `<div class='user'><b>You:</b> ${escapeHtml(msg).replace(/\n/g, "<br>")}</div>`;
+        // Add a loader with a unique id so we can replace it later
+        const loaderId = "loader-" + Date.now();
+        messagesDiv.innerHTML += `<div class='bot' id="${loaderId}"><span class="loader"></span> <em>Bot is typing...</em></div>`;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        msgInput.value = "";
+
+        // Send to backend
+        const resp = await fetch("/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: msg })
+        });
+        // After response, re-render full history (removes loader, shows real reply)
+        await renderHistory();
+      }
+
+      // Escape HTML to prevent XSS and preserve formatting
+      function escapeHtml(text) {
+        return text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // Fetch and render chat history
+      async function renderHistory() {
+        const resp = await fetch("/history");
+        const history = await resp.json();
+        const messagesDiv = document.getElementById("messages");
+        messagesDiv.innerHTML = "";
+        for (const msg of history) {
+          if (msg.role === "user") {
+            messagesDiv.innerHTML += `<div class='user'><b>You:</b> ${escapeHtml(msg.content).replace(/\n/g, "<br>")}</div>`;
+          } else if (msg.role === "assistant") {
+            if (msg.content === "__loading__") {
+              // Always show loader for loading state
+              messagesDiv.innerHTML += `<div class='bot'><span class="loader"></span> <em>Bot is thinking...</em></div>`;
+            } else {
+              // Convert URLs to clickable links
+              let html = escapeHtml(msg.content).replace(/\n/g, "<br>");
+              html = html.replace(
+                /(https?:\/\/[^\s<]+)/g,
+                '<a href="$1" target="_blank" style="color:#1565c0;word-break:break-all;">$1</a>'
+              );
+              messagesDiv.innerHTML += `<div class='bot'>${html}</div>`;
+            }
+          }
+        }
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      // Allow pressing Enter to send
+      document.getElementById("msgInput").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          sendMsg();
+        }
+      });
+
+      // Initial render
+      renderHistory();
+    </script>
+  </body>
+</html>
