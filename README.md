@@ -1,10 +1,10 @@
-# Streamlit Agentic Chatbot
+# Flask Agentic Chatbot
 
-This project is a **Streamlit app** that provides an interactive chatbot interface for users.  
+This project is a **Flask app** that provides an interactive chatbot interface for users.  
 Behind the scenes, it connects with an **agentic workflow** that powers the chatbot’s reasoning and responses.
 
 ## Features
-- Chat-like interface powered by Streamlit  
+- Chat-like interface powered by Flask  
 - Agentic workflow backend for dynamic chatbot responses  
 - Azure OpenAI integration via environment configuration
 
@@ -29,4 +29,4 @@ Behind the scenes, it connects with an **agentic workflow** that powers the chat
 
 4. Run the app from the root directory:
 
-    streamlit run app.py
+    python app.py
