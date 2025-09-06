@@ -182,22 +182,73 @@
           padding: 10px 10px;
         }
       }
+
+      /* Enhancements: dark mode, suggestions, textarea, toolbar */
+      body.dark {
+        background: radial-gradient(1200px 800px at 10% 10%, #0e1630, #0b1020 60%);
+        color: #e5edff;
+      }
+      body.dark .header {
+        background: rgba(18,22,40,0.9);
+        color: #e5edff;
+      }
+      body.dark .chat-box {
+        background: rgba(18,22,40,0.9);
+        border: 1px solid #1b2540;
+        box-shadow: 0 8px 32px rgba(10,20,40,0.5);
+      }
+      body.dark .bot { background:#121a32; color:#e5edff; }
+      body.dark .user { background: linear-gradient(135deg, #3e8cff 80%, #7cb7ff 100%); }
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 4px 12px 4px;
+        border-bottom: 1px dashed #e3f0ff;
+        color: #5b6b86;
+      }
+      body.dark .toolbar { border-color:#1b2540; color:#9db0d0; }
+      .suggestions { display:flex; gap:8px; flex-wrap: wrap; margin-bottom:6px; }
+      .chip { border:1px solid #e3f0ff; padding:8px 10px; border-radius: 999px; cursor:pointer; color: #5b6b86; background: transparent; }
+      body.dark .chip { border-color:#1b2540; color:#9db0d0; }
+      .chip:hover { color:#0f172a; border-color:#0f172a; }
+      body.dark .chip:hover { color:#e5edff; border-color:#e5edff; }
+      textarea { width:100%; resize:none; min-height:48px; max-height:160px; padding:14px 14px; border: 1.5px solid #b3c6e0; border-radius:12px; font-size:1.05rem; outline:none; background: transparent; color: inherit; }
+      textarea:focus { border-color:#1565c0; background: rgba(0,0,0,0.02); }
+      .actions { display:flex; justify-content: space-between; align-items:center; gap:10px; }
+      .send-btn { padding: 12px 22px; background: linear-gradient(135deg, #1565c0 80%, #42a5f5 100%); color:#fff; border:none; border-radius: 12px; font-weight:600; cursor:pointer; box-shadow: 0 2px 8px rgba(21,101,192,0.08); }
     </style>
   </head>
   <body>
     <div class="header">
-      <div>🤖 Secure Multi-Agent Chat</div>
+      <div>🤖 Trinity Chat</div>
       <div>
-        Logged in as <b>{{ user_name }}</b> |
+        <button onclick="clearChat()" style="margin-right:8px;">New chat</button>
+        <button onclick="toggleTheme()" id="themeBtn">🌙</button>
+        <span style="margin: 0 8px;">|</span>
+        Logged in as <b>{{ user_name }}</b>
+        <span style="margin: 0 8px;">|</span>
         <a href="/logout">Logout</a>
       </div>
     </div>
 
     <div class="chat-box">
+      <div class="toolbar">
+        <div>Welcome! Ask me to create events, send reminders, or summarize emails.</div>
+        <div class="hint">Enter to send • Shift+Enter = newline</div>
+      </div>
       <div class="messages" id="messages"></div>
       <div class="input-area">
-        <input type="text" id="msgInput" placeholder="Type your message..." autocomplete="off"/>
-        <button onclick="sendMsg()">Send</button>
+        <div class="suggestions">
+          <div class="chip" onclick="applySuggestion('Create a calendar event for Friday 3pm: Team sync, 30 minutes')">Create calendar event</div>
+          <div class="chip" onclick="applySuggestion('Send a reminder email to the team about the deployment at 5pm')">Send reminder</div>
+          <div class="chip" onclick="applySuggestion('Summarize my latest emails into bullet points')">Summarize emails</div>
+        </div>
+        <textarea id="msgInput" placeholder="Type your message..." autocomplete="off"></textarea>
+        <div class="actions">
+          <div class="hint">Model: Azure OpenAI • Agents: Planner, Notifier</div>
+          <button class="send-btn" onclick="sendMsg()">Send</button>
+        </div>
       </div>
     </div>
 
@@ -237,6 +288,25 @@
           .replace(/'/g, "&#039;");
       }
 
+      // Helpers
+      function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+      }
+
+      function applySuggestion(text) {
+        const el = document.getElementById('msgInput');
+        el.value = text;
+        el.focus();
+        autoResize(el);
+      }
+
+      function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+      }
+
       // Fetch and render chat history
       async function renderHistory() {
         const resp = await fetch("/history");
@@ -266,13 +336,26 @@
 
       // Allow pressing Enter to send
       document.getElementById("msgInput").addEventListener("keydown", function(e) {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
           sendMsg();
         }
       });
 
+      async function clearChat() {
+        await fetch('/clear_history');
+        await renderHistory();
+      }
+
       // Initial render
-      renderHistory();
+      (function init() {
+        const saved = localStorage.getItem('theme');
+        const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.body.classList.add('dark');
+        document.getElementById('themeBtn').textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+        renderHistory();
+        autoResize(document.getElementById('msgInput'));
+      })();
     </script>
   </body>
 </html>

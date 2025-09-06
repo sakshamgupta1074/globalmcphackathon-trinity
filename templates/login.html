@@ -5,26 +5,33 @@
     <script src="https://descopecdn.com/npm/@descope/web-component@3.21.0/dist/index.js"></script>
     <script src="https://descopecdn.com/npm/@descope/web-js-sdk@1.16.0/dist/index.umd.js"></script>
     <style>
+      html, body { height: 100%; margin:0; }
       body {
         display: flex;
         height: 100vh;
         justify-content: center;
         align-items: center;
-        background: #f0f2f5;
-        font-family: Arial, sans-serif;
+        background: radial-gradient(1200px 800px at 10% 10%, #e8f1ff, #f6f9ff 60%);
+        font-family: 'Inter', Arial, sans-serif;
+        color: #0f172a;
       }
       .login-container {
+        width: 420px;
         text-align: center;
-        padding: 40px;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        padding: 32px 28px;
+        background: rgba(255,255,255,0.95);
+        border-radius: 16px;
+        box-shadow: 0 12px 40px rgba(21,101,192,0.15);
+        border: 1px solid #e3f0ff;
       }
+      .title { font-weight: 800; font-size: 1.6rem; margin-bottom: 8px; }
+      .subtitle { color: #5b6b86; margin-bottom: 22px; }
     </style>
   </head>
   <body>
     <div class="login-container">
-      <h2>🔑 Secure Login</h2>
+      <div class="title">🔐 Trinity Chat</div>
+      <div class="subtitle">Sign in to continue</div>
       <descope-wc
         project-id="{{ project_id }}"
         flow-id="sign-up-or-in"
