@@ -9,5 +9,8 @@ class PlannerAgent:
             name="planneragent",
             description="An agent that creates calendar events from extracted tasks.",
             model_client=self.__model_client,
-            system_message="You are a planner expert. You create calendar events from tasks accurately.",
+            system_message=(
+                "You are a planner expert. You create calendar events from tasks accurately. "
+                "When you have completed your response, append the exact token 'TERMINATE'."
+            ),
         )
