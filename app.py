@@ -148,12 +148,16 @@ async def send():
     session["messages"].append({"role": "assistant", "content": "__loading__"})
     session.modified = True
 
-    # Send to agent and get reply
-    await team_agent.send(user_msg)
+    # Run a single, self-terminating stream for this request
     reply = ""
-    async for msg in team_agent.stream_responses():
-        if msg.type == "TextMessage":
-            reply += msg.content
+    async for msg in team_agent.run_once(user_msg):
+        # Some events can be TaskResult or other types; extract text defensively
+        try:
+            content = getattr(msg, "content", None)
+            if isinstance(content, str):
+                reply += content
+        except Exception:
+            pass
 
     # Replace last assistant message (loader) with actual reply
     if session["messages"] and session["messages"][-1]["role"] == "assistant" and session["messages"][-1]["content"] == "__loading__":
@@ -165,4 +169,5 @@ async def send():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    # Disable the reloader to avoid duplicate event loops and shutdown cancellations
+    app.run(host="0.0.0.0", port=8080, debug=True, use_reloader=False)
