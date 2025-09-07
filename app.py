@@ -1,4 +1,7 @@
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
+from urllib.parse import urlencode
+import os
+import secrets
 from descope import DescopeClient, AuthException
 from agents.team import Team
 
@@ -8,6 +11,10 @@ app.secret_key = "super-secret-key"  # change in production
 # --- Config ---
 PROJECT_ID = "P32EWDJvVgaIyVQcl851PmS7N7L7"
 descope_client = DescopeClient(project_id=PROJECT_ID)
+
+# Inbound App OAuth credentials
+INBOUND_CLIENT_ID = "UDMyRVdESnZWZ2FJeVZRY2w4NTFQbVM3TjdMNzpUUEEzMk4xTGtaMDhhTXZ4M0dKc0ZSdnRLRExvQjc="
+INBOUND_CLIENT_SECRET = "qWLwZewM0GsZgvqdPMTNo770qUMhCuOQyxxgVweAXAG"
 
 # --- In-memory Team ---
 team_agent = Team()
@@ -32,7 +39,9 @@ def home():
 @app.route("/login")
 def login():
     session.pop("messages", None)  # Clear chat history on login
-    session.pop("google_token", None)  # Clear Google token on login
+    # Ensure inbound app OAuth is completed before showing consent flow
+    if "code" not in session:
+        return redirect(url_for("start_google_oauth"))
     return render_template("login.html", project_id=PROJECT_ID)
 
 
@@ -55,6 +64,7 @@ def callback():
     try:
         user = descope_client.validate_session(session_jwt)
         session["jwt"] = session_jwt
+        print("User info from Descope:", user)
 
         # Extract user details safely from Descope validation response
         user_info = user.get("user", {}) if isinstance(user, dict) else {}
@@ -81,41 +91,64 @@ def callback():
 #     return "Invalid callback method. Please log in via the login page.", 400
 
 GOOGLE_SCOPES = [
-    "https://www.googleapis.com/auth/calendar",
-    "https://www.googleapis.com/auth/gmail.readonly"
+    # Inbound app scopes configured in Descope
+    "email",
+    "calendar.write",
+    "message.send"
 ]
 
 @app.route("/start-google-oauth")
 def start_google_oauth():
-    client_id = "UDMyRVdESnZWZ2FJeVZRY2w4NTFQbVM3TjdMNzpUUEEzMkV4dUNXQWlrRHh2TVJxME14eGFuYkUyYWo="  # Your inbound app's client_id
     redirect_uri = url_for('google_oauth_callback', _external=True)
     scopes = ' '.join(GOOGLE_SCOPES)
 
-    oauth_url = (
-        f"https://api.descope.com/oauth2/v1/apps/authorize"
-        f"?client_id={client_id}"
-        f"&projectId={PROJECT_ID}"
-        f"&provider=google"
-        f"&scopes={scopes}"
-        f"&redirect_uri={redirect_uri}"
-        f"&response_type=code"
-    )
+    # CSRF state
+    state = secrets.token_urlsafe(24)
+    session['oauth_state'] = state
+
+    # Minimal required params per Descope docs
+    query = urlencode({
+        'client_id': INBOUND_CLIENT_ID,
+        'redirect_uri': redirect_uri,
+        'response_type': 'code',
+        'scope': scopes,
+        'state': state
+    })
+
+    oauth_url = f"https://api.descope.com/oauth2/v1/apps/authorize?{query}"
     return redirect(oauth_url)
 
 @app.route("/google-oauth-callback")
 def google_oauth_callback():
+    print("Google OAuth callback received")
     code = request.args.get("code")
+    print("Code received:", code)
     error = request.args.get("error")
+    print("Error received:", error)
+    returned_state = request.args.get('state')
+    # Validate state if present
+    if returned_state and session.get('oauth_state') and returned_state != session['oauth_state']:
+        return "Invalid OAuth state", 400
     if error:
-        return f"Authorization failed: {error}", 400
+        description = request.args.get("error_description", "")
+        return f"Authorization failed: {error}. {description}", 400
     if not code:
         return "No code received", 400
-
-    # Placeholder for exchanging the code for tokens
-    # Example: tokens = descope_client.inbound_app.exchange_code(code)
-    # For now, store the authorization code in the session
-    session["google_token"] = code
-    return redirect(url_for("chat"))
+    try:
+        # Exchange authorization code for inbound app tokens via Descope SDK
+        # Pass client credentials when exchanging the code
+        # tokens = descope_client.inbound_app.exchange_code(
+        #     code=code,
+        #     client_id=INBOUND_CLIENT_ID,
+        #     client_secret=INBOUND_CLIENT_SECRET,
+        #     redirect_uri=url_for('google_oauth_callback', _external=True)
+        # )
+        # Persist tokens (may include access_token, refresh_token, expires_in, etc.)
+        session["google_token"] = code
+        # After OAuth, show the consent flow (login page renders descope-wc with inbound-apps-user-consent)
+        return redirect(url_for("chat"))
+    except Exception as e:
+        return f"Token exchange failed: {str(e)}", 400
 
 @app.route("/chat")
 def chat():
