@@ -55,8 +55,22 @@ def callback():
     try:
         user = descope_client.validate_session(session_jwt)
         session["jwt"] = session_jwt
-        # session["user_name"] = user.get("name", user.get("loginId", "Unknown User"))
-        # Redirect to chat after login
+
+        # Extract user details safely from Descope validation response
+        user_info = user.get("user", {}) if isinstance(user, dict) else {}
+        user_email = user_info.get("email") or user_info.get("loginId")
+        user_name = user_info.get("name") or user_email
+
+        # Persist to session for later use
+        if user_email:
+            session["user_email"] = user_email
+        session["user_name"] = user_name
+
+        # For POST (AJAX from the login page), return JSON so frontend can redirect
+        if request.method == "POST":
+            return jsonify({"success": True})
+
+        # For GET callback (if ever used), redirect to chat
         return redirect(url_for("chat"))
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 401
@@ -105,11 +119,11 @@ def google_oauth_callback():
 
 @app.route("/chat")
 def chat():
-    if "jwt" not in session:
-        return redirect(url_for("login"))
-    if "google_token" not in session:
-        return redirect(url_for("start_google_oauth"))
-    # Initialize chat history if not present
+    # if "jwt" not in session:
+    #     return redirect(url_for("login"))
+    # if "google_token" not in session:
+    #     return redirect(url_for("start_google_oauth"))
+    # # Initialize chat history if not present
     if "messages" not in session:
         session["messages"] = []
     return render_template("chat.html", user_name=session.get("user_name", "Unknown User"))
@@ -133,8 +147,8 @@ def clear_history():
 # --- Chat Endpoint ---
 @app.route("/send", methods=["POST"])
 async def send():
-    if "jwt" not in session:
-        return {"error": "Unauthorized"}, 401
+    # if "jwt" not in session:
+    #     return {"error": "Unauthorized"}, 401
 
     user_msg = request.json.get("message", "")
     if "messages" not in session:

@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 from .notifieragent import NotifierAgent
 from .planneragent import PlannerAgent
+from .userproxyagent import UserAgent
 
 load_dotenv("model_client.env")
 
@@ -27,17 +28,27 @@ class Team():
         """No-op kept for backward compatibility."""
         return
 
-    async def run_once(self, user_text: str):
+    async def run_once(self, user_text: str,email:str=None):
         # Construct a fresh team bound to the current request's event loop
         agent1 = PlannerAgent(model_client=self.__model_client).get_agent()
         agent2 = NotifierAgent(model_client=self.__model_client).get_agent()
+        user_proxy=UserAgent().get_agent()
         team = SelectorGroupChat(
-            [agent1, agent2],
+            [agent1, agent2, user_proxy],
             model_client=self.__model_client,
             termination_condition=self.__termination,
         )
         async for msg in team.run_stream(task=user_text):
+            print(msg)
+            # skip echo of user input
+            if msg.source == "user":
+                continue
+            if msg.type == "UserInputRequestedEvent":
+                break
+
             yield msg
+
+            
 
     async def shutdown(self):
         return

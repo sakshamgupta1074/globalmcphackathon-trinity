@@ -11,6 +11,6 @@ class PlannerAgent:
             model_client=self.__model_client,
             system_message=(
                 "You are a planner expert. You create calendar events from tasks accurately. "
-                "When you have completed your response, append the exact token 'TERMINATE'."
+                # "When you have completed your response, append the exact token 'TERMINATE'."
             ),
         )

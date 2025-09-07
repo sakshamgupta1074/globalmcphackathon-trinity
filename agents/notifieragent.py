@@ -11,6 +11,6 @@ class NotifierAgent:
             model_client=self.__model_client,
             system_message=(
                 "You are a notifier expert. You send reminders via Slack, SMS, or email accurately. "
-                "When you have completed your response, append the exact token 'TERMINATE'."
+                # "When you have completed your response, append the exact token 'TERMINATE'."
             ),
         )

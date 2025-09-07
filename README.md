@@ -187,6 +187,3 @@ Demo in 60 seconds:
 - Streaming tokens to UI for true live typing
 
 ---
-
-## License
-MIT (or your team’s preferred license)
