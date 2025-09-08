@@ -28,10 +28,10 @@ class Team():
         """No-op kept for backward compatibility."""
         return
 
-    async def run_once(self, user_text: str,email:str=None):
+    async def run_once(self, user_text: str,scopes:list=None):
         # Construct a fresh team bound to the current request's event loop
-        agent1 = PlannerAgent(model_client=self.__model_client).get_agent()
-        agent2 = NotifierAgent(model_client=self.__model_client).get_agent()
+        agent1 = PlannerAgent(model_client=self.__model_client,scopes=scopes).get_agent()
+        agent2 = NotifierAgent(model_client=self.__model_client,scopes=scopes).get_agent()
         user_proxy=UserAgent().get_agent()
         team = SelectorGroupChat(
             [agent1, agent2, user_proxy],

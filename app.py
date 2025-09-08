@@ -168,7 +168,6 @@ def google_oauth_callback():
             tokens = resp.json()
         except Exception:
             tokens = {"error": "non_json_response", "text": resp.text}
-        print("Descope apps/token status:", resp.status_code, tokens)
         if resp.ok:
             session["inbound_tokens"] = tokens  # may include access_token, refresh_token, expires_in, scope
         else:
@@ -221,7 +220,6 @@ async def send():
     inbound_app_scopes = session.get("inbound_tokens", [])
     scopes = inbound_app_scopes.get("scope", [])
     scopes = scopes.split(" ")
-    print("Scopes:", scopes)
     user_msg = request.json.get("message", "")
     if "messages" not in session:
         session["messages"] = []
@@ -236,7 +234,7 @@ async def send():
 
     # Run a single, self-terminating stream for this request
     reply = ""
-    async for msg in team_agent.run_once(user_msg):
+    async for msg in team_agent.run_once(user_msg,scopes):
         # Some events can be TaskResult or other types; extract text defensively
         try:
             content = getattr(msg, "content", None)

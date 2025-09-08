@@ -1,11 +1,13 @@
 from autogen_agentchat.agents import AssistantAgent
 
 class PlannerAgent:
-    def __init__(self, model_client):
+    def __init__(self, model_client,scopes:list=None):
         self.__model_client = model_client
+        self.__scopes = scopes
 
     def planner_tool(self, task: str) -> str:
-        # Simulate that the user have permission to create calendar events
+        if "calendar.write" not in self.__scopes:
+            return f"Failed to create calendar event for task: '{task}'. User does not have permission to create calendar events."
         return f"Successfully created calendar event for task: '{task}'."
 
     def get_agent(self):

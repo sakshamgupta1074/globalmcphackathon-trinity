@@ -1,11 +1,13 @@
 from autogen_agentchat.agents import AssistantAgent
 
 class NotifierAgent:
-    def __init__(self, model_client):
+    def __init__(self, model_client,scopes:list=None):
+        self.__scopes = scopes
         self.__model_client = model_client
 
     def notifier_tool(self, task: str) -> str:
-        # Simulate that the user doesnt have permission to send notifications
+        if "message.send" not in self.__scopes:
+            return f"Failed to send notification for task: '{task}'. User does not have permission to send notifications."
         return f"Failed to send notification for task: '{task}'. User does not have permission."
 
     def get_agent(self):
