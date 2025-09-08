@@ -15,47 +15,101 @@
         font-family: 'Inter', Arial, sans-serif;
         color: #0f172a;
       }
-      .login-container {
-        width: 420px;
-        text-align: center;
-        padding: 32px 28px;
-        background: rgba(255,255,255,0.95);
-        border-radius: 16px;
-        box-shadow: 0 12px 40px rgba(21,101,192,0.15);
-        border: 1px solid #e3f0ff;
-      }
-      .title { font-weight: 800; font-size: 1.6rem; margin-bottom: 8px; }
-      .subtitle { color: #5b6b86; margin-bottom: 22px; }
     </style>
   </head>
   <body>
-    <div class="login-container">
-      <div class="title">🔐 Trinity Chat</div>
-      <div class="subtitle">Sign in to continue</div>
-      <descope-wc
-        project-id="P32EWDJvVgaIyVQcl851PmS7N7L7"
-        flow-id="inbound-apps-user-consent"
-        theme="light"
-        id="descope-login"
-      ></descope-wc>
-    </div>
+    <descope-wc
+      project-id="P32EWDJvVgaIyVQcl851PmS7N7L7"
+      flow-id="inbound-apps-user-consent"
+      theme="light"
+      id="descope-login"
+      style="display:none"
+    ></descope-wc>
 
     <script>
-      window.DescopeConfig = {
-        projectId: "P32EWDJvVgaIyVQcl851PmS7N7L7",
-        redirectUrl: "/chat"
-      };
-      const widget = document.getElementById("descope-login");
-      widget.addEventListener("success", async (e) => {
-      const resp = await fetch("/callback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionJwt: e.detail.sessionJwt })
+      window.DescopeConfig = { projectId: "P32EWDJvVgaIyVQcl851PmS7N7L7" };
+      // Enforce: Authorize must run before showing widget
+      (function enforceAuthorizeFirst() {
+        try {
+          const FLAG = 'descopeAuthorizeDone';
+          const hasCode = new URLSearchParams(window.location.search).has('code');
+          if (!hasCode && !sessionStorage.getItem(FLAG)) {
+            sessionStorage.setItem(FLAG, '1');
+            window.location.replace('/start-google-oauth');
+            return;
+          }
+        } catch (e) {}
+      })();
+      
+      document.addEventListener('DOMContentLoaded', () => {
+  const sdk = Descope({ projectId: window.DescopeConfig.projectId || "P32EWDJvVgaIyVQcl851PmS7N7L7" });
+  const widget = document.getElementById('descope-login');
+
+  // If we already completed callback in this browser session, skip widget entirely
+  try {
+    if (sessionStorage.getItem('descopeJwtPosted') === '1') {
+      window.location.href = '/chat';
+      return;
+    }
+  } catch (_) {}
+
+  async function saveAndGo(jwt) {
+    if (!jwt) return;
+    // Optional: Persist locally if you also need it client-side
+    try { localStorage.setItem('descopeSessionJwt', jwt); } catch (_) {}
+
+    // Send to backend callback so app.py can validate and store in session
+    try {
+      const resp = await fetch('/callback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionJwt: jwt })
       });
-      const data = await resp.json();
-      if (data.success) window.location.href = "/chat";
-      else alert("Login failed");
-      });
+      const data = await resp.json().catch(() => ({}));
+      if (resp.ok && data && data.success) {
+        try { sessionStorage.setItem('descopeJwtPosted', '1'); } catch (_) {}
+        // Redirect back to /login so server can detect session["jwt"] and route to /chat
+        window.location.href = '/login';
+        return;
+      }
+    } catch (_) {}
+    alert('Could not complete sign-in. Please try again.');
+  }
+
+  // On widget success: prefer token from event; fallback to SDK polling
+  widget.addEventListener('success', (e) => {
+    try {
+      const fromEvent = (e && e.detail && (e.detail.sessionJwt || e.detail.sessionToken));
+      if (fromEvent) {
+        saveAndGo(fromEvent);
+        return;
+      }
+    } catch (_) {}
+    let tries = 0;
+    const iv = setInterval(() => {
+      const jwt = sdk.getSessionToken && sdk.getSessionToken();
+      if (jwt || tries++ > 40) {
+        clearInterval(iv);
+        saveAndGo(jwt);
+      }
+    }, 250);
+  });
+
+  // Also handle already-signed-in case
+  const existing = sdk.getSessionToken && sdk.getSessionToken();
+  if (existing) {
+    saveAndGo(existing);
+    return;
+  }
+
+  // No token yet; reveal the widget for user interaction
+  if (widget) widget.style.display = 'block';
+
+  // And react if token becomes available later
+  if (sdk.onSessionTokenChange) {
+    sdk.onSessionTokenChange((jwt) => jwt && saveAndGo(jwt));
+  }
+});
     </script>
   </body>
 </html>
