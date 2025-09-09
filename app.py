@@ -193,7 +193,7 @@ def chat():
     if "messages" not in session:
         session["messages"] = []
     
-    return render_template("chat.html", user_name=session.get("user_name", "Unknown User"))
+    return render_template("chat.html", user_name=session.get("user_name", "Saksham Gupta"))
 
 @app.route("/history")
 def history():

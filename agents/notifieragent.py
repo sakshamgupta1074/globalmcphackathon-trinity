@@ -8,7 +8,7 @@ class NotifierAgent:
     def notifier_tool(self, task: str) -> str:
         if "message.send" not in self.__scopes:
             return f"Failed to send notification for task: '{task}'. User does not have permission to send notifications."
-        return f"Failed to send notification for task: '{task}'. User does not have permission."
+        return f"Notification sent successfully for task: '{task}'"
 
     def get_agent(self):
         return AssistantAgent(

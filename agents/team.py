@@ -36,6 +36,12 @@ class Team():
         team = SelectorGroupChat(
             [agent1, agent2, user_proxy],
             model_client=self.__model_client,
+            description="""You have access to 2 agents: PlannerAgent and NotifierAgent. 
+            When a user asks to create calendar events, use PlannerAgent only.
+            When a user asks to send sms explicitly, use NotifierAgent only.
+
+            These agents are dummy agents and do not have access to any real calendar or sms services. You just need to simulate the actions of these agents by responding with a message indicating what action would have been taken.
+            """,
             termination_condition=self.__termination,
         )
         async for msg in team.run_stream(task=user_text):
