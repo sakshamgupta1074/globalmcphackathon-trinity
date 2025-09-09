@@ -3,6 +3,8 @@
 
 ## Project Name
 **Trinity Planner & Notifier Agent**
+Team Name - Trinity
+Team Members - Saksham Gupta, Kritika Ahuja, Shiva Thavani
 
 ## Short Description
 Trinity Chat is a secure, multi-agent assistant that unifies everyday coordination tasks into a single conversational interface. Built with Flask and Azure OpenAI, it combines specialized Planner and Notifier agents to understand complex requests, create calendar events, send reminders, and manage follow-ups — all behind an elegant, responsive chat UI with dark mode. Instead of context-switching across multiple apps for meetings, reminders, and notifications, users can simply ask: "Create a team sync Friday 3pm and remind everyone at noon" and watch the agents collaborate to plan, execute, and confirm the task.
@@ -58,10 +60,10 @@ Trinity Chat is a secure, multi-agent assistant that unifies everyday coordinati
 - `/login` → Descope Web Component authentication
 - `/chat` → Main chat interface
 - `/send` → Async chat processing with agent collaboration
-- `/start-google-oauth` → Optional Google Calendar/Gmail integration
+- `/start-google-oauth` → Descope API
 
 ## Demo Video Link
-**[Add your demo video link here]**
+https://youtu.be/HXHCTXp6cyA
 
 ## What You'd Do With More Time
 
