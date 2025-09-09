@@ -1,22 +1,3 @@
-
-## Architecture at a glance
-
-```mermaid
-graph TD;
-  User[User in Browser] -->|/login, /chat, /send| Flask[Flask App]
-  Flask -->|Auth + Agent Scoping| Descope[Descope IAM for AI Agents]
-  Flask -->|OAuth| Google[Google OAuth]
-  Flask -->|scoped task| Team[SelectorGroupChat]
-  Team --> |scoped permissions| Planner[Planner Agent - Scoped]
-  Team --> |scoped permissions| Notifier[Notifier Agent - Scoped]
-  Descope -->|permission validation| Planner
-  Descope -->|permission validation| Notifier
-  Planner --> AOAI[Azure OpenAI]
-  Notifier --> AOAI
-  AOAI --> Team
-  Team -->|audited events| Flask
-  Flask -->|reply
-
 ## Trinity Chat — Secure Multi‑Agent Assistant (Flask)
 
 Trinity Chat is a modern, secure, multi‑agent assistant built on Flask and Azure OpenAI. It combines multiple specialized agents (Planner and Notifier) to understand tasks, create calendar events, and send reminders — all behind an elegant, responsive chat UI with dark mode.
