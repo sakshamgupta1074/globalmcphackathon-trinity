@@ -69,7 +69,7 @@ sequenceDiagram
 
 ### 1) Clone and enter the project
 ```bash
-git clone <your-fork-or-repo-url>
+git clone(https://github.com/sakshamgupta1074/globalmcphackathon-trinity.git)
 cd globalmcphackathon-trinity-main
 ```
 
