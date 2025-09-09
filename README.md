@@ -1,3 +1,77 @@
+# Trinity Chat Hackathon Submission
+
+
+## Project Name
+**Trinity Planner & Notifier Agent**
+
+## Short Description
+Trinity Chat is a secure, multi-agent assistant that unifies everyday coordination tasks into a single conversational interface. Built with Flask and Azure OpenAI, it combines specialized Planner and Notifier agents to understand complex requests, create calendar events, send reminders, and manage follow-ups — all behind an elegant, responsive chat UI with dark mode. Instead of context-switching across multiple apps for meetings, reminders, and notifications, users can simply ask: "Create a team sync Friday 3pm and remind everyone at noon" and watch the agents collaborate to plan, execute, and confirm the task.
+
+## Hackathon Theme
+**Theme 3: Secure Agent to Agent Communication with Descope**
+
+## What You Built & How to Run It
+
+### What We Built
+- **Multi-Agent Architecture**: Planner and Notifier agents that collaborate using Autogen AgentChat to break down complex tasks and execute them systematically
+- **Secure Authentication**: Integration with Descope for user authentication and Google OAuth for Calendar/Gmail scope access
+- **Modern Chat Interface**: Beautiful, responsive UI featuring:
+  - Dark mode toggle with preference storage
+  - Auto-sizing textarea and quick suggestion chips
+  - Code block formatting with copy-to-clipboard functionality
+  - Real-time message streaming
+- **Async Backend**: Flask application with async endpoints and streaming aggregation for responsive user experience
+- **Azure OpenAI Integration**: Seamless connection to Azure OpenAI services for natural language processing
+
+### How to Run It
+
+1. **Clone and Setup**
+   ```bash
+   git clone https://github.com/sakshamgupta1074/globalmcphackathon-trinity.git
+   cd globalmcphackathon-trinity-main
+   ```
+
+2. **Environment Configuration**
+   Create `model_client.env` in the project root:
+   ```env
+   MODEL="gpt-5-mini"
+   AZURE_ENDPOINT="https://{resource}.openai.azure.com/"
+   AZURE_DEPLOYMENT="gpt-5-mini"
+   API_VERSION="2025-04-01-preview"
+   API_KEY="{api_key}"
+   ```
+
+3. **Install Dependencies**
+   ```bash
+   python3 -m venv .venv && source .venv/bin/activate
+   python -m pip install -r requirements.txt
+   python -m pip install "Flask[async]"
+   ```
+
+4. **Run the Application**
+   ```bash
+   python app.py
+   # Access at http://localhost:8080
+   ```
+
+### Key Endpoints
+- `/login` → Descope Web Component authentication
+- `/chat` → Main chat interface
+- `/send` → Async chat processing with agent collaboration
+- `/start-google-oauth` → Optional Google Calendar/Gmail integration
+
+## Demo Video Link
+**[Add your demo video link here]**
+
+## What You'd Do With More Time
+
+1. **Public Deployment**: Deploy the application to a public-facing URL using cloud platforms like Azure App Service, AWS, or Heroku with proper production configurations
+2. **Enhanced Integrations**: 
+3. **Advanced Features**:
+4. **Enterprise Features**:
+5. **Enhanced Agent Capabilities**:
+
+
 ## Trinity Chat — Secure Multi‑Agent Assistant (Flask)
 
 Trinity Chat is a modern, secure, multi‑agent assistant built on Flask and Azure OpenAI. It combines multiple specialized agents (Planner and Notifier) to understand tasks, create calendar events, and send reminders — all behind an elegant, responsive chat UI with dark mode.
